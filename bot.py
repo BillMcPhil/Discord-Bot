@@ -9,7 +9,7 @@ async def send_message(message, user_message):
         print(e)
 
 def run_discord_bot():
-    TOKEN = #Insert token here
+    TOKEN = #Insert bot token here
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)

@@ -16,12 +16,14 @@ class Character:
 
     # Gives the player stats @param a list of stats
     def add_stats(self, stats):
+        s = []
         if len(stats) == 6:
             for i in range(len(stats)):
                 if stats[i] < 28:
-                    self.stats.append(stats[i])
+                    s.append(stats[i])
                 else:
                     print("Invalid player stats, greater than 28")
+            self.stats = s
             return f"Stats added to character {self.name}"
         else:
             print("Invalid player stats, more than 6")
@@ -69,6 +71,8 @@ def handle_response(message) -> str:
         return make_check(remove_command(p_message, 7))
     elif command == "!delprofic":
         return remove_profic(remove_command(p_message, 11))
+    elif command == "!removechar":
+        return remove_char(remove_command(p_message, 12))
 
 # Rolls dice
 # @param the original message
@@ -209,8 +213,8 @@ def add_stats(message):
         if len(stats) != 6:
             return "Incorrect player stats. Must be only 6 stats"
         # Make sure that each stat does not exceed 28
-        if max(stats) > 28 or min(stats) < 3:
-            return "Incorrect player stats. No stat may exceed 28 or be less than 3"
+        if max(stats) > 28 or min(stats) < 1:
+            return "Incorrect player stats. No stat may exceed 28 or be less than 1"
         
         character = find_player(command[0])
 
@@ -325,6 +329,13 @@ def make_check(message):
     print(roll, bonus, profic)
 
     return f"{skill} check for {name}: {roll} + {bonus} = {total}"
+
+def remove_char(name):
+    for char in characters:
+        if char.name == name:
+            characters.remove(char)
+            break
+    return f"Removed character {name}"
     
 
 # Removes the command portion from the initial message. 

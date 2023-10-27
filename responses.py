@@ -71,8 +71,10 @@ def handle_response(message) -> str:
         return make_check(remove_command(p_message, 7))
     elif command == "!delprofic":
         return remove_profic(remove_command(p_message, 11))
-    elif command == "!removechar":
-        return remove_char(remove_command(p_message, 12))
+    elif command == "!delchar":
+        return remove_char(remove_command(p_message, 9))
+    elif command == "!lvlup":
+        return level_up(remove_command(p_message, 7))
 
 # Rolls dice
 # @param the original message
@@ -184,19 +186,18 @@ def add_char(message):
         return "Level value must be an integer between 1 and 20"
     
     char = Character(name, character, race, cless, level)
-
-    characters.append(char)
     
     # Add the player character to the list and return a confirmation message
+    characters.append(char)
     return f"Character {character} has been added"
 
 # Retrieves base character information @param a message containing the player name
 def get_char(message):
     #Runs through the list of characters to find the one being referenced
-    for i in range(len(characters)):
-        if characters[i].player == message:
-            character = characters[i]
-            return f"Character name: {character.name}\nRace: {character.race}\nClass: {character.cless}"
+    character = find_player(message)
+    for char in characters:
+        if char.player == message:
+            return f"Character name: {char.name}\nRace: {char.race}\nClass: {char.cless}\nLevel: {char.level}"
     return f"Player {message} not found"
     
 # Adds stats to the player
@@ -209,7 +210,7 @@ def add_stats(message):
         for i in range(1, len(command)):
             stats.append(int(command[i]))
 
-        #   Make sure the there are only 6 stats in the list, no more and no less
+        # Make sure the there are only 6 stats in the list, no more and no less
         if len(stats) != 6:
             return "Incorrect player stats. Must be only 6 stats"
         # Make sure that each stat does not exceed 28
@@ -241,6 +242,7 @@ def add_profic(message):
     words = get_word(message)
     proficiencies = []
 
+    # Put all inputted proficiencies into a list
     for i in range(1, len(words)):
         proficiencies.append(words[i])
 
@@ -256,19 +258,19 @@ def add_profic(message):
 def get_profic(message):
     character = find_player(message)
 
-    if len(character.proficiencies) < 1:
-        return f"Character {message} does not have any proficiencies"
-
     answer = f"Proficiencies for character {character.name}:\n"
 
+    # Checks to see if the character exists and then constructs a message to be returned
     if character != "Player not found":
+        if len(character.proficiencies) < 1:
+            return f"Character {message} does not have any proficiencies"
         for i in character.proficiencies:
-            answer = answer + "- " + i
-            answer = answer + "\n"
+            answer = answer + "- " + i + "\n"
     else:
         return f"Player {message} not found"
     return answer
 
+#Removes proficiencies from a character
 def remove_profic(message):
     words = get_word(message)
     name = words[0]
@@ -279,63 +281,84 @@ def remove_profic(message):
     
     char = find_player(name)
     
-    for i in words:
-        for j in range(len(char.proficiencies)):
-            if i == char.proficiencies[j]:
-                char.proficiencies.pop(j)
-                break
+    if char != "Player not found":
+        for i in words:
+            for j in range(len(char.proficiencies)):
+                if i == char.proficiencies[j]:
+                    char.proficiencies.pop(j)
+                    break
+    else:
+        return f"Player {name} not found"
     
     return f"Proficiencies removed from character {name}"
 
 #Makes a check using a player's proficiencies and ability scores
 def make_check(message):
-    words = get_word(message)
-    name = words[0]
-    skill = words[1]
-    character = find_player(name)
-    score = 0
-    profic = 0
+    try:
+        words = get_word(message)
+        name = words[0]
+        skill = words[1]
+        character = find_player(name)
+        score = 0
+        profic = 0
 
-    if character == "Player not found":
-        return f"Player {name} not found"
+        # Make sure the player exists
+        if character == "Player not found":
+            return f"Player {name} not found"
 
-    if len(character.stats) == 0:
-        return "Must give player stats before making a check"
+        # Make sure the player has stats
+        if len(character.stats) == 0:
+            return "Must give player stats before making a check"
 
-    if len(character.proficiencies) > 0:
-        for i in character.proficiencies:
-            if i == skill:
-                profic = math.ceil(character.level / 4) + 1
-                break
-    
-    if skill == "acrobatics" or skill == "sleight" or skill == "stealth":
-        score = character.stats[1]
-    elif skill == "athletics":
-        score = character.stats[0]
-    elif skill == "arcana" or skill == "history" or skill == "investigation" or skill == "nature" or skill == "religion":
-        score = character.stats[3]
-    elif skill == "animal" or skill == "insight" or skill == "medicine" or skill == "perception" or skill == "survival":
-        score = character.stats[4]
-    elif skill == "deception" or skill == "intimidation" or skill == "performance" or skill == "persuasion":
-        score = character.stats[5]
-    else:
-        return "Skill does not exist"
+        # See if the player is proficient in this skill, and get the proficiency bonus from the charcter's level
+        if len(character.proficiencies) > 0:
+            for i in character.proficiencies:
+                if i == skill:
+                    profic = math.ceil(character.level / 4) + 1
+                    break
+        
+        # Check the skill and apply the applicable stat
+        if skill == "acrobatics" or skill == "sleight" or skill == "stealth":
+            score = character.stats[1]
+        elif skill == "athletics":
+            score = character.stats[0]
+        elif skill == "arcana" or skill == "history" or skill == "investigation" or skill == "nature" or skill == "religion":
+            score = character.stats[3]
+        elif skill == "animal" or skill == "insight" or skill == "medicine" or skill == "perception" or skill == "survival":
+            score = character.stats[4]
+        elif skill == "deception" or skill == "intimidation" or skill == "performance" or skill == "persuasion":
+            score = character.stats[5]
+        else:
+            return "Skill does not exist"
 
-    score = (score - 10) // 2
+        # Get the player 
+        score = (score - 10) // 2
+        roll = random.randint(1, 20)
+        bonus = score + profic
+        total = roll + bonus
+        print(roll, bonus, profic)
 
-    roll = random.randint(1, 20)
-    bonus = score + profic
-    total = roll + bonus
-    print(roll, bonus, profic)
+        return f"{skill} check for {name}: {roll} + {bonus} = {total}"
+    except:
+        return "Incorrect command format"
 
-    return f"{skill} check for {name}: {roll} + {bonus} = {total}"
-
+#Removes a character from the list
 def remove_char(name):
-    for char in characters:
-        if char.name == name:
-            characters.remove(char)
-            break
-    return f"Removed character {name}"
+    char = find_player(name)
+    if char == "Player not found":
+        return f"Character {name} could not be found"
+    else:
+        characters.remove(char)
+        return f"Character {name} removed"
+
+# Levels up a character
+def level_up(name):
+    char = find_player(name)
+    if char != "Player not found":
+        char.level += 1
+        return f"Character {name} leveled up to level {char.level}"
+    else:
+        return f"Character {name} could not be found."
     
 
 # Removes the command portion from the initial message. 
@@ -365,15 +388,10 @@ def get_word(message):
 
     return words
 
+#Find a character within the list of characters
 def find_player(name):
     for i in range(len(characters)):
         if characters[i].name == name:
             return characters[i]
     return "Player not found"
-    
-
-
-
-
-
     

@@ -75,6 +75,8 @@ def handle_response(message) -> str:
         return remove_char(remove_command(p_message, 9))
     elif command == "!lvlup":
         return level_up(remove_command(p_message, 7))
+    elif command == "!help":
+        return help()
 
 # Rolls dice
 # @param the original message
@@ -359,6 +361,10 @@ def level_up(name):
         return f"Character {name} leveled up to level {char.level}"
     else:
         return f"Character {name} could not be found."
+    
+def help():
+    return "A bot for storing D&D character info within the discord chat for quick and easy reference. The bot has the following commands: \n> !roll - Rolls the specified number of dice \n> !randchar - Creates random set of 6 numbers for random character stats \n> !addchar - Adds a character \n> !getchar - Retrieves a character's info \n> !addstats - Adds or modifies to a character's base stats \n> !getstats - Displays a character's stats \n> !addprofic - Adds proficiencies to a character \n> !getprofic - Displays a character's proficiencies \n> !delprofic - Removes a specified proficiency from a character \n> !check - Makes a skill check using a character's stats and proficiencies \n> !delchar - Removes a specified character \n> !lvlup - Levels up a specified character"
+
     
 
 # Removes the command portion from the initial message. 

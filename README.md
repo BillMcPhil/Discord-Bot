@@ -1,4 +1,4 @@
-# Discord-Bot
+# DnD-Discord-Bot
 A bot for storing D&D character info within the discord chat for quick and easy reference. The bot has the following commands:
 >!roll [int]d[int]+[int]- Rolls the specified number of dice
 >

@@ -130,7 +130,7 @@ def roll(message: str):
 def randchar():
     stats = []
     # Generates stats and adds the stats to a list
-    for i in range(6):
+    for _ in range(6):
         rolls = []
         # Creates random individual stats based on the following rules:
         # Roll 4d6, re-roll 1s, drop lowest
@@ -148,7 +148,8 @@ def randchar():
         stats.append(sum(rolls))
 
     # Returns stats. Looks terrible in code but outputs are nice and formatted
-    return f"STR: {stats[0]}\nDEX: {stats[1]}\nCON: {stats[2]}\nINT: {stats[3]}\nWIS: {stats[4]}\nCHA: {stats[5]}"\
+    stats = map(lambda xs: f"{xs[0]}: {xs[1]}", zip(["STR", "DEX", "CON", "INT", "WIS", "CHA"], stats))
+    return '\n'.join(stats)
     
 # Adds a player and their associated character to a list, @return a confirmation message
 def addchar(message):  

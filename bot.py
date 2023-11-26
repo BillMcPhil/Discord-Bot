@@ -4,14 +4,15 @@ import responses
 async def send_message(message: discord.Message):
     try: 
         respond = responses.handle_response(message.content)
-        await message.channel.send(respond)
+        # Respond may be none. Only send if type(respond) is str and len(respond) > 0
+        if respond:
+            await message.channel.send(respond)
     except Exception as e:
         print(e)
 
 def run_discord_bot(token: str | None = None):
     if token is None:
         raise Exception("run_discord_bot needs an api token")
-
     
     intents = discord.Intents.default()
     intents.message_content = True

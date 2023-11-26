@@ -9,7 +9,7 @@ characters = []
 # Character class, takes in player name, character name, race and class as initial parameters
 # Players can add stats and proficiencies using other commands
 class Character:
-    def __init__(self, player, name, race, cless, level):
+    def __init__(self, player: str, name: str, race: str, cless: int, level: int):
         self.player = player
         self.name = name
         self.race = race
@@ -19,19 +19,19 @@ class Character:
         self.level = level
 
     # Gives the player stats @param a list of stats
-    # WARNING: This function can return None. Are the prints supposed to be returns?
-    def add_stats(self, stats) -> str | None:
+    # NOTE: Assumed all strings in this function are meant to be returned.
+    def add_stats(self, stats) -> str:
         s = []
         if len(stats) == 6:
             for i in range(len(stats)):
                 if stats[i] < 28:
                     s.append(stats[i])
                 else:
-                    print("Invalid player stats, greater than 28")
+                    return "Invalid player stats, greater than 28"
             self.stats = s
             return f"Stats added to character {self.name}"
         else:
-            print("Invalid player stats, more than 6")
+            return "Invalid player stats, more than 6"
 
     # Adds proficiencies to the player characters @param a list of proficiencies
     def add_proficiencies(self, proficiency: Iterable[str]) -> str:
@@ -80,67 +80,51 @@ def handle_response(message: str) -> str | None:
             # We should not be calling anything with more than 1 arg.
             return None
 
+class RollException(Exception):
+    pass
+
 # Rolls dice
 # @param the original message
 # @return the result of the roll
-def roll(message):
-    number = ""
-    dice = ""
-    bonus = ""
-    index = 1
+def roll(message: str):
+    number, dice, bonus = None, None, 0
 
-    # Gets the number of dice requested
-    for i in range(len(message)):
-        if message[i] != "d":
-            number = number + message[i]
-            index += 1
-            # Checks to see if the number of dice being requested is too much
-            if index > 3:
-                return "Incorrect Command: number of dice must be lower than 100"
-        else:
-            break
-
-    # Gets the type of dice being rolled
-    for i in range(index, len(message)):
-        if message[i] != "+" and message [i] != "-":
-            dice = dice + message[i]
-            index += 1
-        else:
-            break
-
-    # Get the bonus value
-    for i in range(index, len(message)):
-        bonus = bonus + message[i]
-
-    # Converts both the number of dice, type of dice, and bonus into integers, 
-    # or if they cannot be turned into integers the command is incorrect and returns an error
     try:
-        number = int(number)
-    except Exception as e:
-        return "Incorrect Command: Must have an integer as the number of dice (Command format: !roll [int]d[int]+[int])"
-    
-    try:
-        dice = int(dice)
-    except Exception as e:
-        return "Incorrect Command. Dice type must be an integer. (Command format: !roll [int]d[int]+[int])"
+        # Gets the number of dice requested and handle errors
+        dice_end = message.find("d")
+        if dice_end != -1:
+            number = int(message[0:dice_end])
+        else:
+            # There was no "d" in `message`
+            raise RollException("Must have an integer as the number of dice")
 
-    if bonus != "":
-        try:
-            bonus = int(bonus)
-        except Exception as e:
-            return "Incorrect Command. Bonus must be an integer with no spaces before the + or -. (Command format: !roll [int]d[int]+[int])"
-    else: bonus = 0
+        if number >= 100:
+            return "Incorrect Command: number of dice must be lower than 100"
+
+        # Gets the type of dice being rolled
+        type_end = message.find("+", dice_end + 1)
+        if type_end == -1:
+            type_end = message.find("-", dice_end + 1)
+
+        if type_end != -1:
+            dice = int(message[dice_end + 1:type_end])
+        else:
+            raise RollException("Dice type must be an integer.")
+
+        # Get the bonus value
+        if type_end != -1:
+            bonus = int(message[type_end:])
+        else:
+            raise RollException("Bonus must be an integer with no spaces before the + or -.")
+    except (RollException, ValueError) as e:
+        return f"Incorrect Command: {e} (Command format: !roll [int]d[int]+[int])"
 
     # Rolls the dice and collects each die roll into a list
-    roll = []
-    for i in range(number):
-        num = random.randint(1, dice)
-        roll.append(num)
-
+    roll = [random.randint(1, dice) for _ in range(number)]
     total = sum(roll) + bonus
 
     # Returns the result of the roll
-    return f"Rolls: {roll} + {bonus}. Total: {total}"
+    return f"Rolls: {roll} {'+' if bonus >= 0 else '-'} {abs(bonus)}. Total: {total}"
 
 # Returns random stats for a character
 def randchar():
@@ -193,7 +177,7 @@ def addchar(message):
     return f"Character {character} has been added"
 
 # Retrieves base character information @param a message containing the player name
-def getchar(message):
+def getchar(message: str) -> str:
     #Runs through the list of characters to find the one being referenced
     character = find_player(message)
     for char in characters:
@@ -202,7 +186,7 @@ def getchar(message):
     return f"Player {message} not found"
     
 # Adds stats to the player
-def addstats(message):
+def addstats(message: str) -> str:
     try:
         command = message.split()
         stats = []
@@ -228,7 +212,7 @@ def addstats(message):
         return "Incorrect command. Command format: !addstats [player name] [STR] [DEX] [CON] [INT] [WIS] [CHA]"
 
 # Retrieve player stats
-def getstats(message):
+def getstats(message: str) -> str:
     # Find the referenced character
     character = find_player(message)
 
@@ -238,7 +222,7 @@ def getstats(message):
     return f"STR: {character.stats[0]}\nDEX: {character.stats[1]}\nCON: {character.stats[2]}\nINT: {character.stats[3]}\nWIS: {character.stats[4]}\nCHA: {character.stats[5]}\n"
 
 # Adds proficiencies to a player
-def addprofic(message):
+def addprofic(message: str) -> str:
     words = message.split()
     proficiencies = []
 
@@ -255,7 +239,7 @@ def addprofic(message):
         return f"Proficiencies added to character {character.name}"
 
 # Retrieves player proficiencies
-def getprofic(message):
+def getprofic(message: str) -> str:
     character = find_player(message)
 
     # Checks to see if the character exists
@@ -273,7 +257,7 @@ def getprofic(message):
     return answer
 
 # Removes proficiencies from a character
-def removeprofic(message):
+def removeprofic(message: str) -> str:
     words = message.split()
     name = words[0]
     profics = words[1:]
@@ -294,7 +278,7 @@ def removeprofic(message):
     return f"Proficiencies removed from character {name}"
 
 # Makes a check using a player's proficiencies and ability scores
-def makecheck(message):
+def makecheck(message: str) -> str:
     try:
         words = message.split()
         name = words[0]
@@ -351,7 +335,7 @@ def removechar(name):
         return f"Character {name} removed"
 
 # Levels up a character
-def levelup(name):
+def levelup(name: str) -> str:
     char = find_player(name)
 
     if char is None:
@@ -360,7 +344,7 @@ def levelup(name):
     char.level += 1
     return f"Character {name} leveled up to level {char.level}"
     
-def help():
+def help() -> str:
     return """A bot for storing D&D character info within the discord chat for
 quick and easy reference. The bot has the following commands: 
     > !roll - Rolls the specified number of dice 

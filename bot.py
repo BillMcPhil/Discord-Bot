@@ -1,15 +1,19 @@
 import discord
 import responses
 
-async def send_message(message, user_message):
+async def send_message(message: discord.Message):
     try: 
-        respond = responses.handle_response(user_message)
-        await message.channel.send(respond)
+        respond = responses.handle_response(message.content)
+        # Respond may be none. Only send if type(respond) is str and len(respond) > 0
+        if respond:
+            await message.channel.send(respond)
     except Exception as e:
         print(e)
 
-def run_discord_bot():
-    TOKEN = #Insert bot token here
+def run_discord_bot(token: str | None = None):
+    if token is None:
+        raise Exception("run_discord_bot needs an api token")
+    
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
@@ -19,14 +23,13 @@ def run_discord_bot():
         print(f'{client.user} is now running')
 
     @client.event
-    async def on_message(message):
+    async def on_message(message: discord.Message):
         if message.author == client.user:
             return
         username = str(message.author)
-        user_message = str(message.content)
         channel = str(message.channel)
-        print(f'{username} said {user_message} in {channel}')
-        await send_message(message, user_message)
+        print(f'{username} said {message.content} in {channel}')
+        await send_message(message)
     
-    client.run(TOKEN)
+    client.run(token)
 

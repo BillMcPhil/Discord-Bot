@@ -18,25 +18,23 @@ class Character:
         self.level = level
 
     # Gives the player stats
-    def add_stats(self, stats):
-        if len(stats) == 6:
-            if len(self.stats) > 0:
-                for i in range(len(stats)):
-                    if stats[i] < 28:
-                        self.stats[i] = stats[i]
-                    else:
-                        print("Invalid player stats, greater than 28")
-            else:
-                for i in range(len(stats)):
-                    if stats[i] < 28:
-                        self.stats.append(stats[i])
-                    else:
-                        print("Invalid player stats, greater than 28")
-            return f"Stats added to character {self.name}"
+    def add_stats(self, stats: list[int]) -> str:
+        if len(stats) != 6:
+            return "Invalid player stats, must be exactly 6"
+        if max(stats) > 28 or min(stats) < 1:
+            return "Incorrect player stats. No stat may exceed 28 or be less than 1"
+
+        # If stats have already been added then replace the items in the current list
+        if len(self.stats) > 0:
+            for i in range(len(stats)):
+                self.stats[i] = stats[i]
         else:
-            print("Invalid player stats, more than 6")
+            for i in range(len(stats)):
+                self.stats.append(stats[i])
+        return f"Stats added to character {self.name}"
 
     # Adds proficiencies to the player characters
+
     def add_proficiencies(self, proficiency):
         for profic in proficiency:
             self.proficiencies.append(profic)
@@ -54,7 +52,7 @@ def handle_response(message: str) -> str:
 
     # Checks to see if a command has been made
     if command == "!roll":
-        return roll(remove_command(p_message, 6))
+        return roll(remove_command(p_message))
     elif command == "!randchar":
         return rand_char()
     elif command == "!addchar":
@@ -85,62 +83,31 @@ def handle_response(message: str) -> str:
 # @return the result of the roll
 
 
-def roll(message):
-    number = ""
-    dice = ""
-    bonus = ""
-    index = 1
-
-    # Gets the number of dice requested
-    for i in range(len(message)):
-        if message[i] != "d":
-            number = number + message[i]
-            index += 1
-            # Checks to see if the number of dice being requested is too much
-            if index > 3:
-                return "Incorrect Command: number of dice must be lower than 100"
-        else:
-            break
-
-    # Gets the type of dice being rolled
-    for i in range(index, len(message)):
-        if message[i] != "+" and message[i] != "-":
-            dice = dice + message[i]
-            index += 1
-        else:
-            break
-
-    # Get the bonus value
-    for i in range(index, len(message)):
-        bonus = bonus + message[i]
-
-    # Converts both the number of dice, type of dice, and bonus into integers,
-    # or if they cannot be turned into integers the command is incorrect and returns an error
+def roll(message: str) -> str:
+    roll = ""
     try:
-        number = int(number)
-    except Exception as e:
-        return "Incorrect Command: Must have an integer as the number of dice (Command format: !roll [int]d[int]+[int])"
-
-    try:
-        dice = int(dice)
-    except Exception as e:
-        return "Incorrect Command. Dice type must be an integer. (Command format: !roll [int]d[int]+[int])"
-
-    if bonus != "":
+        # Split the message by the plus sign to get roll and bonus info
         try:
-            bonus = int(bonus)
-        except Exception as e:
-            return "Incorrect Command. Bonus must be an integer with no spaces before the + or -. (Command format: !roll [int]d[int]+[int])"
-    else:
-        bonus = 0
+            roll = message.split("+")[0]
+            bonus = int(message.split("+")[1])
+        except:
+            roll = message
+            bonus = 0
 
-    # Rolls the dice and collects each die roll into a list
-    roll = []
+        # Split the roll string to get the number and type of die
+        number = int(roll.split("d")[0])
+        die_type = int(roll.split("d")[1])
+
+    except Exception as e:
+        return "Incorrect command. Format is [int]d[int]+[int]"
+
+    # Rolls the dice and sum all rolls
+    val = 0
     for i in range(number):
-        num = random.randint(1, dice)
-        roll.append(num)
+        val += random.randint(1, die_type)
 
-    total = sum(roll) + bonus
+    # Add the bonus
+    total = val + bonus
 
     # Returns the result of the roll
     return f"Rolls: {roll} + {bonus}. Total: {total}"
@@ -221,13 +188,6 @@ def add_stats(message):
         # Create a list containing only the stats, not the player name
         for i in range(1, len(command)):
             stats.append(int(command[i]))
-
-        # Make sure the there are only 6 stats in the list, no more and no less
-        if len(stats) != 6:
-            return "Incorrect player stats. Must be only 6 stats"
-        # Make sure that each stat does not exceed 28
-        if max(stats) > 28 or min(stats) < 1:
-            return "Incorrect player stats. No stat may exceed 28 or be less than 1"
 
         player = find_player(command[0])
 

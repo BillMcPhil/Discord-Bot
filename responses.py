@@ -4,8 +4,11 @@ characters = []
 
 # Character class, takes in player name, character name, race and class as initial parameters
 # Players can add stats and proficiencies using other commands
+# Class is called cless because calling it class interferes with the class declaration :p
+
+
 class Character:
-    def __init__(self, player, name, race, cless, level):
+    def __init__(self, player: str, name: str, race: str, cless: str, level: str):
         self.player = player
         self.name = name
         self.race = race
@@ -14,73 +17,74 @@ class Character:
         self.proficiencies = []
         self.level = level
 
-    # Gives the player stats @param a list of stats
+    # Gives the player stats
     def add_stats(self, stats):
-        s = []
         if len(stats) == 6:
-            for i in range(len(stats)):
-                if stats[i] < 28:
-                    s.append(stats[i])
-                else:
-                    print("Invalid player stats, greater than 28")
-            self.stats = s
+            if len(self.stats) > 0:
+                for i in range(len(stats)):
+                    if stats[i] < 28:
+                        self.stats[i] = stats[i]
+                    else:
+                        print("Invalid player stats, greater than 28")
+            else:
+                for i in range(len(stats)):
+                    if stats[i] < 28:
+                        self.stats.append(stats[i])
+                    else:
+                        print("Invalid player stats, greater than 28")
             return f"Stats added to character {self.name}"
         else:
             print("Invalid player stats, more than 6")
 
-    # Adds proficiencies to the player characters @param a list of proficiencies
+    # Adds proficiencies to the player characters
     def add_proficiencies(self, proficiency):
         for profic in proficiency:
             self.proficiencies.append(profic)
         return f"Proficiencies added to character {self.name}"
-    
 
-# @param message 
-# first determines if the message is a command and then @returns a response
-def handle_response(message) -> str:
-    #Make command all lowercase
+# first determines if the message is a command and then returns a response
+
+
+def handle_response(message: str) -> str:
+    # Make command all lowercase
     p_message = message.lower()
 
-    command = ""
+    # Takes the first word of any message sent in chat so it can be checked to see if it is a command
+    command = p_message.split()[0]
 
-    #Takes the first word of any message sent in chat so it can be checked to see if it is a command
-    for char in p_message:
-        if char != " ":
-            command = command + char
-        else:
-            break
-    
     # Checks to see if a command has been made
     if command == "!roll":
         return roll(remove_command(p_message, 6))
     elif command == "!randchar":
         return rand_char()
     elif command == "!addchar":
-        return add_char(remove_command(p_message, 9))
+        return add_char(remove_command(p_message))
     elif command == "!getchar":
-        return get_char(remove_command(p_message, 9))
+        return get_char(remove_command(p_message))
     elif command == "!addstats":
-        return add_stats(remove_command(p_message, 10))
+        return add_stats(remove_command(p_message))
     elif command == "!getstats":
-        return get_stats(remove_command(p_message, 10))
+        return get_stats(remove_command(p_message))
     elif command == "!addprofic":
-        return add_profic(remove_command(p_message, 11))
+        return add_profic(remove_command(p_message))
     elif command == "!getprofic":
-        return get_profic(remove_command(p_message, 11))
+        return get_profic(remove_command(p_message))
     elif command == "!check":
-        return make_check(remove_command(p_message, 7))
+        return make_check(remove_command(p_message))
     elif command == "!delprofic":
-        return remove_profic(remove_command(p_message, 11))
+        return remove_profic(remove_command(p_message))
     elif command == "!delchar":
-        return remove_char(remove_command(p_message, 9))
+        return remove_char(remove_command(p_message))
     elif command == "!lvlup":
-        return level_up(remove_command(p_message, 7))
+        return level_up(remove_command(p_message))
     elif command == "!help":
         return help()
 
 # Rolls dice
 # @param the original message
 # @return the result of the roll
+
+
 def roll(message):
     number = ""
     dice = ""
@@ -100,7 +104,7 @@ def roll(message):
 
     # Gets the type of dice being rolled
     for i in range(index, len(message)):
-        if message[i] != "+" and message [i] != "-":
+        if message[i] != "+" and message[i] != "-":
             dice = dice + message[i]
             index += 1
         else:
@@ -109,16 +113,14 @@ def roll(message):
     # Get the bonus value
     for i in range(index, len(message)):
         bonus = bonus + message[i]
-    
 
-
-    # Converts both the number of dice, type of dice, and bonus into integers, 
+    # Converts both the number of dice, type of dice, and bonus into integers,
     # or if they cannot be turned into integers the command is incorrect and returns an error
     try:
         number = int(number)
     except Exception as e:
         return "Incorrect Command: Must have an integer as the number of dice (Command format: !roll [int]d[int]+[int])"
-    
+
     try:
         dice = int(dice)
     except Exception as e:
@@ -129,8 +131,8 @@ def roll(message):
             bonus = int(bonus)
         except Exception as e:
             return "Incorrect Command. Bonus must be an integer with no spaces before the + or -. (Command format: !roll [int]d[int]+[int])"
-    else: bonus = 0
-    
+    else:
+        bonus = 0
 
     # Rolls the dice and collects each die roll into a list
     roll = []
@@ -144,6 +146,8 @@ def roll(message):
     return f"Rolls: {roll} + {bonus}. Total: {total}"
 
 # Returns random stats for a character
+
+
 def rand_char():
     stats = []
     # Generates stats and adds the stats to a list
@@ -159,26 +163,28 @@ def rand_char():
                 continue
             else:
                 rolls.append(roll)
-        
+
         # Drop lowest roll, then sum all three rolls together to get stats
         rolls.remove(min(rolls))
         stats.append(sum(rolls))
 
     # Returns stats. Looks terrible in code but outputs are nice and formatted
     return f"STR: {stats[0]}\nDEX: {stats[1]}\nCON: {stats[2]}\nINT: {stats[3]}\nWIS: {stats[4]}\nCHA: {stats[5]}"\
-    
+
 # Adds a player and their associated character to a list, @return a confirmation message
-def add_char(message):  
+
+
+def add_char(message):
     try:
         words = get_word(message)
         name = words[0]
         character = words[1]
         race = words[2]
-        cless= words[3]
+        cless = words[3]
         level = words[4]
     except Exception as e:
         return "Incorrect command"
-    
+
     # Change the input for the level from a string to an int
     try:
         level = int(level)
@@ -186,23 +192,27 @@ def add_char(message):
             return "Level value must be an integer between 1 and 20"
     except Exception as e:
         return "Level value must be an integer between 1 and 20"
-    
+
     char = Character(name, character, race, cless, level)
-    
+
     # Add the player character to the list and return a confirmation message
     characters.append(char)
     return f"Character {character} has been added"
 
-# Retrieves base character information @param a message containing the player name
+# Retrieves base character information a message containing the player name
+
+
 def get_char(message):
-    #Runs through the list of characters to find the one being referenced
-    character = find_player(message)
-    for char in characters:
-        if char.player == message:
-            return f"Character name: {char.name}\nRace: {char.race}\nClass: {char.cless}\nLevel: {char.level}"
+    # Runs through the list of characters to find the one being referenced
+
+    for character in characters:
+        if character.player == message:
+            return f"Character name: {character.name}\nRace: {character.race}\nClass: {character.cless}\nLevel: {character.level}"
     return f"Player {message} not found"
-    
+
 # Adds stats to the player
+
+
 def add_stats(message):
     try:
         command = get_word(message)
@@ -218,18 +228,21 @@ def add_stats(message):
         # Make sure that each stat does not exceed 28
         if max(stats) > 28 or min(stats) < 1:
             return "Incorrect player stats. No stat may exceed 28 or be less than 1"
-        
-        character = find_player(command[0])
 
-        if character != "Player not found":
-            return character.add_stats(stats)
+        player = find_player(command[0])
+
+        if player != "Player not found":
+            return player.add_stats(stats)
         else:
             return f"Player {command[0]} not found"
-        
+
     except Exception as e:
+        print(e)
         return "Incorrect command. Command format: !addstats [player name] [STR] [DEX] [CON] [INT] [WIS] [CHA]"
 
 # Retrieve player stats
+
+
 def get_stats(message):
     # Find the referenced character
     character = find_player(message)
@@ -240,6 +253,8 @@ def get_stats(message):
         return f"Player {message} not found"
 
 # Adds proficiencies to a player
+
+
 def add_profic(message):
     words = get_word(message)
     proficiencies = []
@@ -249,14 +264,16 @@ def add_profic(message):
         proficiencies.append(words[i])
 
     character = find_player(words[0])
-    
+
     if character == "Player not found":
         return f"Player {words[0]} not found"
     else:
         character.add_proficiencies(proficiencies)
         return f"Proficiencies added to character {character.name}"
 
-#Retrieves player proficiencies
+# Retrieves player proficiencies
+
+
 def get_profic(message):
     character = find_player(message)
 
@@ -272,17 +289,19 @@ def get_profic(message):
         return f"Player {message} not found"
     return answer
 
-#Removes proficiencies from a character
+# Removes proficiencies from a character
+
+
 def remove_profic(message):
     words = get_word(message)
     name = words[0]
     profics = []
-    
+
     for i in range(1, len(words)):
         profics.append(words[i])
-    
+
     char = find_player(name)
-    
+
     if char != "Player not found":
         for i in words:
             for j in range(len(char.proficiencies)):
@@ -291,10 +310,12 @@ def remove_profic(message):
                     break
     else:
         return f"Player {name} not found"
-    
+
     return f"Proficiencies removed from character {name}"
 
-#Makes a check using a player's proficiencies and ability scores
+# Makes a check using a player's proficiencies and ability scores
+
+
 def make_check(message):
     try:
         words = get_word(message)
@@ -318,7 +339,7 @@ def make_check(message):
                 if i == skill:
                     profic = math.ceil(character.level / 4) + 1
                     break
-        
+
         # Check the skill and apply the applicable stat
         if skill == "acrobatics" or skill == "sleight" or skill == "stealth":
             score = character.stats[1]
@@ -333,7 +354,7 @@ def make_check(message):
         else:
             return "Skill does not exist"
 
-        # Get the player 
+        # Get the player
         score = (score - 10) // 2
         roll = random.randint(1, 20)
         bonus = score + profic
@@ -344,7 +365,9 @@ def make_check(message):
     except:
         return "Incorrect command format"
 
-#Removes a character from the list
+# Removes a character from the list
+
+
 def remove_char(name):
     char = find_player(name)
     if char == "Player not found":
@@ -354,50 +377,42 @@ def remove_char(name):
         return f"Character {name} removed"
 
 # Levels up a character
-def level_up(name):
+
+
+def level_up(name: str) -> str:
     char = find_player(name)
     if char != "Player not found":
         char.level += 1
         return f"Character {name} leveled up to level {char.level}"
     else:
         return f"Character {name} could not be found."
-    
+
+
 def help():
     return "A bot for storing D&D character info within the discord chat for quick and easy reference. The bot has the following commands: \n> !roll - Rolls the specified number of dice \n> !randchar - Creates random set of 6 numbers for random character stats \n> !addchar - Adds a character \n> !getchar - Retrieves a character's info \n> !addstats - Adds or modifies to a character's base stats \n> !getstats - Displays a character's stats \n> !addprofic - Adds proficiencies to a character \n> !getprofic - Displays a character's proficiencies \n> !delprofic - Removes a specified proficiency from a character \n> !check - Makes a skill check using a character's stats and proficiencies \n> !delchar - Removes a specified character \n> !lvlup - Levels up a specified character"
 
-    
 
-# Removes the command portion from the initial message. 
-# @param the message to remove the command from and the character length of the specific command (plus the space after the command)
-# @return a new message without the command portion
-def remove_command(message, command_length):
+# Removes the command portion from the initial message.
+def remove_command(message: str) -> str:
+    x = message.split()
+    x.pop(0)
     new_message = ""
     # Construct a new string starting immediately after the space after the command
-    for i in range(command_length, len(message)):
-        new_message = new_message + message[i]
-    return new_message
+    for word in x:
+        new_message = new_message + word + " "
+    return new_message[:-1]
 
 # Take a string and turn it into a list of individual words
-def get_word(message):
-    words = []
-    word = ""
-    #Loop through the message
-    for i in range(len(message)):
-        # Constructs a word character by character until it runs into a space, 
-        # At which point it adds the word into the list and moves onto the next word
-        if message[i] != " ":
-            word = word + message[i]
-        else:
-            words.append(word)
-            word = ""
-    words.append(word)
 
-    return words
 
-#Find a character within the list of characters
-def find_player(name):
+def get_word(message: str):
+    return message.split()
+
+# Find a character within the list of characters
+
+
+def find_player(name: str) -> Character:
     for i in range(len(characters)):
         if characters[i].name == name:
             return characters[i]
     return "Player not found"
-    

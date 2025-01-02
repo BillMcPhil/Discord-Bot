@@ -1,15 +1,17 @@
 import discord
 import responses
 
+
 async def send_message(message, user_message):
-    try: 
+    try:
         respond = responses.handle_response(user_message)
         await message.channel.send(respond)
     except Exception as e:
         print(e)
 
+
 def run_discord_bot():
-    TOKEN = #Insert bot token here
+    TOKEN = 'MTEzNTI5ODUyOTcyMDU0NTMyMQ.GWA4Bz.3xhTpVqaux7EQNIx-vf7SSi-u1Ev6iVk6OojnI'
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
@@ -27,6 +29,5 @@ def run_discord_bot():
         channel = str(message.channel)
         print(f'{username} said {user_message} in {channel}')
         await send_message(message, user_message)
-    
-    client.run(TOKEN)
 
+    client.run(TOKEN)

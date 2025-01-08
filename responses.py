@@ -5,8 +5,6 @@ characters = []
 # Character class, takes in player name, character name, race and class as initial parameters
 # Players can add stats and proficiencies using other commands
 # Class is called cless because calling it class interferes with the class declaration :p
-
-
 class Character:
     def __init__(self, player: str, name: str, race: str, cless: str, level: str):
         self.player = player
@@ -34,14 +32,11 @@ class Character:
         return f"Stats added to character {self.name}"
 
     # Adds proficiencies to the player characters
-
     def add_proficiencies(self, proficiency: list[str]) -> str:
         self.proficiencies.extend(proficiency)
         return f"Proficiencies added to character {self.name}"
 
 # first determines if the message is a command and then returns a response
-
-
 def handle_response(message: str) -> str:
     # Make command all lowercase
     p_message = message.lower()
@@ -80,8 +75,6 @@ def handle_response(message: str) -> str:
 # Rolls dice
 # @param the original message
 # @return the result of the roll
-
-
 def roll(message: str) -> str:
     roll = ""
     try:
@@ -112,16 +105,13 @@ def roll(message: str) -> str:
     return f"Rolls: {roll} + {bonus}. Total: {total}"
 
 # Returns random stats for a character
-
-
 def rand_char():
     stats = []
     # Generates stats and adds the stats to a list
     for i in range(6):
         rolls = []
-        # Creates random individual stats based on the following rules:
-        # Roll 4d6 drop lowest
-        while len(rolls) < 4:
+        # Creates random individual stats based on the rule roll 4d6 drop lowest:
+        for i in range(4):
             roll = random.randint(1, 6)
             rolls.append(roll)
 
@@ -133,8 +123,6 @@ def rand_char():
     return f"STR: {stats[0]}\nDEX: {stats[1]}\nCON: {stats[2]}\nINT: {stats[3]}\nWIS: {stats[4]}\nCHA: {stats[5]}"\
 
 # Adds a player and their associated character to a list, @return a confirmation message
-
-
 def add_char(message: str) -> str:
     try:
         words = get_word(message)
@@ -146,7 +134,7 @@ def add_char(message: str) -> str:
     except Exception as e:
         return "Incorrect command"
 
-    # Change the input for the level from a string to an int
+    # Make sure level is within legal range
     if level > 20 or level < 1:
         return "Level value must be an integer between 1 and 20"
 
@@ -157,19 +145,14 @@ def add_char(message: str) -> str:
     return f"Character {character} has been added"
 
 # Retrieves base character information a message containing the player name
-
-
 def get_char(message: str) -> str:
     # Runs through the list of characters to find the one being referenced
-
     for character in characters:
         if character.player == message:
             return f"Character name: {character.name}\nRace: {character.race}\nClass: {character.cless}\nLevel: {character.level}"
     return f"Player {message} not found"
 
 # Adds stats to the player
-
-
 def add_stats(message: str) -> str:
     try:
         command = get_word(message)
@@ -186,8 +169,6 @@ def add_stats(message: str) -> str:
         return "Incorrect command. Command format: !addstats [player name] [STR] [DEX] [CON] [INT] [WIS] [CHA]"
 
 # Retrieve player stats
-
-
 def get_stats(message: str) -> str:
     # Find the referenced character
     character = find_player(message)
@@ -198,8 +179,6 @@ def get_stats(message: str) -> str:
         return f"Player {message} not found"
 
 # Adds proficiencies to a player
-
-
 def add_profic(message: str) -> str:
     words = get_word(message)
     proficiencies = words[1:]
@@ -213,8 +192,6 @@ def add_profic(message: str) -> str:
         return f"Proficiencies added to character {character.name}"
 
 # Retrieves player proficiencies
-
-
 def get_profic(message: str) -> str:
     character = find_player(message)
 
@@ -231,8 +208,6 @@ def get_profic(message: str) -> str:
     return answer
 
 # Removes proficiencies from a character
-
-
 def remove_profic(message: str) -> str:
     words = get_word(message)
     name = words[0]
@@ -255,8 +230,6 @@ def remove_profic(message: str) -> str:
     return f"Proficiencies removed from character {name}"
 
 # Makes a check using a player's proficiencies and ability scores
-
-
 def make_check(message: str) -> str:
     try:
         words = get_word(message)
@@ -276,8 +249,9 @@ def make_check(message: str) -> str:
 
         # See if the player is proficient in this skill, and get the proficiency bonus from the charcter's level
         if len(character.proficiencies) > 0:
-            for i in character.proficiencies:
-                if i == skill:
+            for proficiency in character.proficiencies:
+                if proficiency == skill:
+                    #Formula for proficiency score based on character level
                     profic = math.ceil(character.level / 4) + 1
                     break
 
@@ -295,20 +269,17 @@ def make_check(message: str) -> str:
         else:
             return "Skill does not exist"
 
-        # Get the player
-        score = (score - 10) // 2
+        # Find the player's ability score bonus and make the roll
+        ability_score = (score - 10) // 2
         roll = random.randint(1, 20)
-        bonus = score + profic
+        bonus = ability_score + profic
         total = roll + bonus
-        print(roll, bonus, profic)
 
-        return f"{skill} check for {name}: {roll} + {bonus} = {total}"
+        return f"{skill} check for {name}: {roll} + {ability_score} + {profic} = {total}"
     except:
         return "Incorrect command format"
 
 # Removes a character from the list
-
-
 def remove_char(name: str) -> str:
     char = find_player(name)
     if char == "Player not found":
@@ -318,8 +289,6 @@ def remove_char(name: str) -> str:
         return f"Character {name} removed"
 
 # Levels up a character
-
-
 def level_up(name: str) -> str:
     char = find_player(name)
     if char != "Player not found":
@@ -341,17 +310,14 @@ def remove_command(message: str) -> str:
     # Construct a new string starting immediately after the space after the command
     for word in x:
         new_message = new_message + word + " "
+    # Remove the last space added in the string
     return new_message[:-1]
 
 # Take a string and turn it into a list of individual words
-
-
 def get_word(message: str) -> list[str]:
     return message.split()
 
 # Find a character within the list of characters
-
-
 def find_player(name: str) -> Character:
     for i in range(len(characters)):
         if characters[i].name == name:
